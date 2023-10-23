@@ -17,6 +17,7 @@ class HX711:
     def __init__(self,
                  dout_pin,
                  pd_sck_pin,
+                 stdev_thresh,
                  gain_channel_A=128,
                  select_channel='A'):
         """
@@ -55,6 +56,7 @@ class HX711:
         self._scale_ratio_A_64 = 1  # scale ratio for channel A and gain 64
         self._scale_ratio_B = 1  # scale ratio for channel B
         self._debug_mode = False
+        self._stdev_thresh = stdev_thresh
         self._data_filter = self.outliers_filter  # default it is used outliers_filter
 
         GPIO.setup(self._pd_sck, GPIO.OUT)  # pin _pd_sck is output only
@@ -443,7 +445,7 @@ class HX711:
             data_list.append(self._read())
         data_mean = False
         if readings > 2 and self._data_filter:
-            filtered_data = self._data_filter(data_list)
+            filtered_data = self._data_filter(data_list, self._stdev_thresh)
             if not filtered_data:
                 return False
             if self._debug_mode:
@@ -659,7 +661,7 @@ class HX711:
             return True
 
 
-    def outliers_filter(self, data_list, stdev_thresh = 1.0):
+    def outliers_filter(self, data_list, stdev_thresh=1.0):
         """
         It filters out outliers from the provided list of int.
         Median is used as an estimator of outliers.
