@@ -17,7 +17,7 @@ class HX711:
     def __init__(self,
                  dout_pin,
                  pd_sck_pin,
-                 stdev_thresh,
+                 stdev_thresh=1.0,
                  gain_channel_A=128,
                  select_channel='A'):
         """
