@@ -112,7 +112,7 @@ class HX711:
     def zero(self, readings=30):
         """
         zero is a method which sets the current data as
-        an offset for particulart channel. It can be used for
+        an offset for particular channel. It can be used for
         subtracting the weight of the packaging. Also known as tare.
 
         Args:
@@ -121,11 +121,11 @@ class HX711:
         Raises:
             ValueError: if readings are not in range 1..99
 
-        Returns: True if error occured.
+        Returns: True if error occurred.
         """
         if readings > 0 and readings < 100:
             result = self.get_raw_data_mean(readings)
-            if result != False:
+            if result is not False:
                 if (self._current_channel == 'A' and
                         self._gain_channel_A == 128):
                     self._offset_A_128 = result
@@ -146,8 +146,10 @@ class HX711:
                     return True
             else:
                 if self._debug_mode:
-                    print('From method "zero()".\n'
-                          'get_raw_data_mean(readings) returned False.\n')
+                    print(
+                        'From method "zero()".\n'
+                        'get_raw_data_mean(readings) returned False.\n'
+                    )
                 return True
         else:
             raise ValueError('Parameter "readings" '
@@ -333,7 +335,8 @@ class HX711:
             end_counter = time.perf_counter()
             # check if hx 711 did not turn off...
             if end_counter - start_counter >= 0.00006:
-                # if pd_sck pin is HIGH for 60 us and more than the HX 711 enters power down mode.
+                # if pd_sck pin is HIGH for 60 us and more than the HX711
+                # enters power down mode.
                 if self._debug_mode:
                     print('Not enough fast while setting gain and channel')
                     print(
@@ -341,7 +344,7 @@ class HX711:
                 # hx711 has turned off. First few readings are inaccurate.
                 # Despite it, this reading was ok and data can be used.
                 result = self.get_raw_data_mean(6)  # set for the next reading.
-                if result == False:
+                if result is False:
                     return False
         return True
 
@@ -358,7 +361,8 @@ class HX711:
         while (not self._ready() and ready_counter <= 40):
             time.sleep(0.01)  # sleep for 10 ms because data is not ready
             ready_counter += 1
-            if ready_counter == 50:  # if counter reached max value then return False
+            # if counter reached max value then returns False
+            if ready_counter == 50:
                 if self._debug_mode:
                     print('self._read() not ready after 40 trials\n')
                 return False
@@ -436,7 +440,7 @@ class HX711:
         Returns: (bool || int) if False then reading is invalid.
             if it returns int then reading is valid
         """
-        # do backup of current channel befor reading for later use
+        # do backup of current channel before reading for later use
         backup_channel = self._current_channel
         backup_gain = self._gain_channel_A
         data_list = []
@@ -456,7 +460,7 @@ class HX711:
         else:
             data_mean = stat.mean(data_list)
         self._save_last_raw_data(backup_channel, backup_gain, data_mean)
-        return int(data_mean)
+        return data_mean
 
     def get_data_mean(self, readings=30):
         """
