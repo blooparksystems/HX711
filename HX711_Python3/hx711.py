@@ -449,7 +449,8 @@ class HX711:
             data_list.append(self._read())
         data_mean = False
         if readings > 2 and self._data_filter:
-            filtered_data = self._data_filter(data_list, self._stdev_thresh)
+            clean_data = self.clean_read_data(data_list)
+            filtered_data = self._data_filter(clean_data, self._stdev_thresh)
             if not filtered_data:
                 return False
             if self._debug_mode:
@@ -462,6 +463,20 @@ class HX711:
         self._save_last_raw_data(backup_channel, backup_gain, data_mean)
         return data_mean
 
+    def clean_read_data(self, read_data):
+        # keep only positive values (this will have impact if the wiring is in
+        # a way that we get negative readings always)
+        # but anyway, if the result of this function is less than 10 values
+        # we ignore it and return the original values.
+        positive_values = [num for num in read_data if num > 0]
+        # Check if there are at least 10 values left
+        if len(positive_values) >= 10:
+            # remove the 2 highest and 2 lowest values
+            sorted_numbers = sorted(positive_values)
+            trimmed_numbers = sorted_numbers[2:-2]
+            return trimmed_numbers
+        return read_data
+    
     def get_data_mean(self, readings=30):
         """
         get_data_mean returns average value of readings minus
@@ -474,7 +489,7 @@ class HX711:
             If it returns int then reading was ok
         """
         result = self.get_raw_data_mean(readings)
-        if result != False:
+        if result is not False:
             if self._current_channel == 'A' and self._gain_channel_A == 128:
                 return result - self._offset_A_128
             elif self._current_channel == 'A' and self._gain_channel_A == 64:
