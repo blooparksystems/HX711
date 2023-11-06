@@ -58,6 +58,7 @@ class HX711:
         self._debug_mode = False
         self._stdev_thresh = stdev_thresh
         self._data_filter = self.outliers_filter  # default it is used outliers_filter
+        self._clean_data = False
 
         GPIO.setup(self._pd_sck, GPIO.OUT)  # pin _pd_sck is output only
         GPIO.setup(self._dout, GPIO.IN)  # pin _dout is input only
@@ -449,8 +450,9 @@ class HX711:
             data_list.append(self._read())
         data_mean = False
         if readings > 2 and self._data_filter:
-            clean_data = self.clean_read_data(data_list)
-            filtered_data = self._data_filter(clean_data, self._stdev_thresh)
+            if self._clean_data:
+                data_list = self.clean_read_data(data_list)
+            filtered_data = self._data_filter(data_list, self._stdev_thresh)
             if not filtered_data:
                 return False
             if self._debug_mode:
